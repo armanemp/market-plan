@@ -373,7 +373,7 @@ function isValidPlan(candidate) {
   if(candidate.dataAsOf && !parseIsoDate(candidate.dataAsOf)) return false;
   const symbols=new Set();
   for(const inst of candidate.instruments){
-    if(!inst||typeof inst.symbol!=='string'||!inst.symbol.trim()||symbols.has(inst.symbol)||typeof inst.name!=='string'||!inst.name.trim()||!Number.isInteger(inst.digits)||inst.digits<0||inst.digits>10||!Array.isArray(inst.levels)||!inst.levels.length||!Array.isArray(inst.scenarios)||!inst.scenarios.length) return false;
+    if(!inst||typeof inst.symbol!=='string'||!inst.symbol.trim()||symbols.has(inst.symbol)||typeof inst.name!=='string'||!inst.name.trim()||!Number.isInteger(inst.digits)||inst.digits<0||inst.digits>8||!Array.isArray(inst.levels)||!inst.levels.length||!Array.isArray(inst.scenarios)||!inst.scenarios.length) return false;
     symbols.add(inst.symbol);
     const ids=new Set();
     for(const level of inst.levels){

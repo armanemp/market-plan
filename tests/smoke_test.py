@@ -64,5 +64,15 @@ class SmokeTests(unittest.TestCase):
         self.assertIn('id="importBtn"',self.html)
         self.assertIn('id="priceMap"',self.html)
 
+    def test_responsive_design_and_validation_guards(self):
+        self.assertIn("@media(max-width:760px)", self.html)
+        self.assertIn("@media(max-width:420px)", self.html)
+        self.assertIn("@media print", self.html)
+        self.assertIn("function isValidPlan(candidate)", self.html)
+        self.assertIn("symbols.has(inst.symbol)", self.html)
+        self.assertIn("scenarioIds.has(scenario.id)", self.html)
+        self.assertIn("requiredValues.some(id=>$(id).value.trim()==='')", self.html)
+        self.assertIn("قیمت سطح نمی‌تواند خالی باشد", self.html)
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
