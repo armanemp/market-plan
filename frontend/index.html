@@ -332,16 +332,18 @@ function isValidPlan(candidate) {
   return candidate.instruments.every(inst=>{
     if(!inst||typeof inst.symbol!=='string'||typeof inst.name!=='string'||!Array.isArray(inst.levels)||!inst.levels.length||!Array.isArray(inst.scenarios)) return false;
     const ids=new Set();
-    for(const level of inst.levels){if(!level||typeof level.id!=='string'||ids.has(level.id)||typeof level.label!=='string'||!Number.isFinite(Number(level.price)))return false;ids.add(level.id);}
+    for(const level of inst.levels){if(!level||typeof level.id!=='string'||ids.has(level.id)||typeof level.label!=='string'||typeof level.price!=='number'||!Number.isFinite(level.price))return false;ids.add(level.id);}
     if(!ids.has(inst.referenceLevelId)) return false;
-    return inst.scenarios.every(s=>s&&typeof s.id==='string'&&['long','short','wait'].includes(s.direction)&&ids.has(s.triggerLevelId)&&(!s.invalidationLevelId||ids.has(s.invalidationLevelId))&&Array.isArray(s.targetLevelIds)&&s.targetLevelIds.every(id=>ids.has(id)));
-  })&&Number.isFinite(Number(candidate.riskPolicy.minimumRewardRisk))&&Number.isFinite(Number(candidate.riskPolicy.dailyLossLimitPct));
+    const scenarioIds=new Set();
+    for(const scenario of inst.scenarios){if(!scenario||typeof scenario.id!=='string'||scenarioIds.has(scenario.id)||!['long','short','wait'].includes(scenario.direction)||!ids.has(scenario.triggerLevelId)|| (scenario.invalidationLevelId&&!ids.has(scenario.invalidationLevelId))||!Array.isArray(scenario.targetLevelIds)||!scenario.targetLevelIds.every(id=>ids.has(id)))return false;scenarioIds.add(scenario.id);}
+    return true;
+  })&&Number.isFinite(candidate.riskPolicy.minimumRewardRisk)&&Number.isFinite(candidate.riskPolicy.dailyLossLimitPct);
 }
 function exportJson() {
   plan.status=plan.status==='example'?'exported-example':(plan.status||'draft');
   plan.review.notes=$('reviewNotes').value;
   const blob=new Blob([JSON.stringify(plan,null,2)+'\n'],{type:'application/json;charset=utf-8'});
-  const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`market-plan-${plan.date}.json`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); toast('فایل JSON پلن آماده شد.');
+  const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`market-plan-${plan.date}.json`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000); toast('فایل JSON پلن آماده شد.');
 }
 function importJsonFile(file) {
   if(!file) return;
@@ -357,10 +359,11 @@ function calcRR() {
   if(!valid){out.innerHTML=`<div class="callout red"><strong>چیدمان قیمت نامعتبر است.</strong> برای ${side==='long'?'خرید':'فروش'}، حد ضرر و هدف باید در سمت درست ورود باشند.</div>`;return;}
   const rawRisk=Math.abs(entry-stop),rawReward=Math.abs(target-entry);
   const netRisk=rawRisk+costs,netReward=rawReward-costs;
+  const calcDigits=Math.max(Number(getInstrument().digits)||2,Math.min(8,($('entry').value.split('.')[1]||'').length));
   if(netReward<=0||netRisk<=0){out.innerHTML='<div class="callout red"><strong>هزینه معامله از فضای هدف بیشتر است.</strong> قیمت‌ها/هزینه معادل قیمت را اصلاح کن.</div>';return;}
   const rr=netReward/netRisk, moneyRisk=bal*riskPct/100, moneyReward=moneyRisk*rr;
   const cls=rr>=Number(plan.riskPolicy.minimumRewardRisk)?'good':'bad';
-  out.innerHTML=`<div class="calc-result-grid"><div class="metric"><span>نسبت خالص سود به زیان</span><strong class="${cls}">${rr.toFixed(2)}R</strong></div><div class="metric"><span>مبلغ ریسک بودجه‌شده</span><strong>${moneyRisk.toLocaleString('en-US',{maximumFractionDigits:2})}</strong></div><div class="metric"><span>سود برآوردی پس از هزینه</span><strong class="${cls}">${moneyReward.toLocaleString('en-US',{maximumFractionDigits:2})}</strong></div><div class="metric"><span>فاصله مؤثر SL</span><strong>${numberFormat(netRisk,Math.min(6,Math.max(2,String(entry).split('.')[1]?.length||2)))}</strong></div><div class="metric"><span>فاصله مؤثر TP</span><strong>${numberFormat(netReward,Math.min(6,Math.max(2,String(entry).split('.')[1]?.length||2)))}</strong></div><div class="metric"><span>هزینه معادل قیمت</span><strong>${numberFormat(costs,Math.min(6,Math.max(2,String(entry).split('.')[1]?.length||2)))}</strong></div></div><div class="${rr>=Number(plan.riskPolicy.minimumRewardRisk)?'callout green':'callout red'}" style="margin-top:11px"><strong>${rr>=Number(plan.riskPolicy.minimumRewardRisk)?'از فیلتر حداقل R:R عبور کرد؛ سایر شروط همچنان الزامی است.':'زیر حداقل '+numberFormat(plan.riskPolicy.minimumRewardRisk,1)+'R است؛ طبق پلن معامله رد شود.'}</strong><div class="small" style="margin-top:4px">لات محاسبه نشده است. برای تبدیل مبلغ ریسک به حجم، ارزش تیک/اندازه قرارداد و ارز حساب لازم است.</div></div>`;
+  out.innerHTML=`<div class="calc-result-grid"><div class="metric"><span>نسبت خالص سود به زیان</span><strong class="${cls}">${rr.toFixed(2)}R</strong></div><div class="metric"><span>مبلغ ریسک بودجه‌شده</span><strong>${moneyRisk.toLocaleString('en-US',{maximumFractionDigits:2})}</strong></div><div class="metric"><span>سود برآوردی پس از هزینه</span><strong class="${cls}">${moneyReward.toLocaleString('en-US',{maximumFractionDigits:2})}</strong></div><div class="metric"><span>فاصله مؤثر SL</span><strong>${numberFormat(netRisk,calcDigits)}</strong></div><div class="metric"><span>فاصله مؤثر TP</span><strong>${numberFormat(netReward,calcDigits)}</strong></div><div class="metric"><span>هزینه معادل قیمت</span><strong>${numberFormat(costs,calcDigits)}</strong></div></div><div class="${rr>=Number(plan.riskPolicy.minimumRewardRisk)?'callout green':'callout red'}" style="margin-top:11px"><strong>${rr>=Number(plan.riskPolicy.minimumRewardRisk)?'از فیلتر حداقل R:R عبور کرد؛ سایر شروط همچنان الزامی است.':'زیر حداقل '+numberFormat(plan.riskPolicy.minimumRewardRisk,1)+'R است؛ طبق پلن معامله رد شود.'}</strong><div class="small" style="margin-top:4px">لات محاسبه نشده است. برای تبدیل مبلغ ریسک به حجم، ارزش تیک/اندازه قرارداد و ارز حساب لازم است.</div></div>`;
 }
 function applyLevelEdits() {
   const inst=getInstrument();
