@@ -3,6 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Market Plan">
+<link rel="icon" href="./icons/market-plan.svg" type="image/svg+xml">
 <meta name="theme-color" content="#0b0e13">
 <meta name="description" content="داشبورد سبک و آفلاین برای استانداردسازی پلن معاملاتی روزانه، نقشه سطوح قیمت، سناریوها، مدیریت ریسک و چک‌لیست.">
 <title>Market Plan | میز برنامه‌ریزی بازار</title>
@@ -407,6 +412,7 @@ function init() {
   renderAll();bindEvents();dirty=false;$('footerStatus').textContent=plan.status==='example'?'نمونه اولیه · تغییرات را ذخیره کن':'ذخیره‌شده در مرورگر';
 }
 init();
+if('serviceWorker' in navigator && location.protocol!=='file:') { window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{})); }
 </script>
 </body>
 </html>

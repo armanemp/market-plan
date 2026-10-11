@@ -1,0 +1,20 @@
+{
+  "name": "Market Plan — Daily Market Planning",
+  "short_name": "Market Plan",
+  "description": "محیط برنامه‌ریزی روزانه بازار، مدیریت دارایی‌ها و سناریوهای معاملاتی",
+  "lang": "fa",
+  "dir": "rtl",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b1017",
+  "theme_color": "#0b1017",
+  "icons": [
+    {
+      "src": "./icons/market-plan.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
