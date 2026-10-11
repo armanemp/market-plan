@@ -369,16 +369,30 @@ function switchDate(nextDate) {
   selectedSymbol='XAUUSD'; selectedScenarioId=getInstrument().scenarios[0]?.id; dirty=true; renderAll(); savePlan(false);
 }
 function isValidPlan(candidate) {
-  if(!candidate||typeof candidate!=='object'||candidate.schemaVersion!=='1.0.0'||!parseIsoDate(candidate.date)||typeof candidate.timezone!=='string'||!candidate.timezone||!Array.isArray(candidate.instruments)||!candidate.instruments.length||!candidate.riskPolicy||!Array.isArray(candidate.checklist)||!Array.isArray(candidate.sources)) return false;
-  return candidate.instruments.every(inst=>{
-    if(!inst||typeof inst.symbol!=='string'||typeof inst.name!=='string'||!Array.isArray(inst.levels)||!inst.levels.length||!Array.isArray(inst.scenarios)) return false;
+  if(!candidate||typeof candidate!=='object'||Array.isArray(candidate)||candidate.schemaVersion!=='1.0.0'||!parseIsoDate(candidate.date)||typeof candidate.timezone!=='string'||!candidate.timezone.trim()||!Array.isArray(candidate.instruments)||!candidate.instruments.length||!candidate.riskPolicy||!Array.isArray(candidate.checklist)||!Array.isArray(candidate.sources)) return false;
+  if(candidate.dataAsOf && !parseIsoDate(candidate.dataAsOf)) return false;
+  const symbols=new Set();
+  for(const inst of candidate.instruments){
+    if(!inst||typeof inst.symbol!=='string'||!inst.symbol.trim()||symbols.has(inst.symbol)||typeof inst.name!=='string'||!inst.name.trim()||!Number.isInteger(inst.digits)||inst.digits<0||inst.digits>10||!Array.isArray(inst.levels)||!inst.levels.length||!Array.isArray(inst.scenarios)||!inst.scenarios.length) return false;
+    symbols.add(inst.symbol);
     const ids=new Set();
-    for(const level of inst.levels){if(!level||typeof level.id!=='string'||ids.has(level.id)||typeof level.label!=='string'||typeof level.price!=='number'||!Number.isFinite(level.price))return false;ids.add(level.id);}
+    for(const level of inst.levels){
+      if(!level||typeof level.id!=='string'||!level.id.trim()||ids.has(level.id)||typeof level.label!=='string'||!level.label.trim()||typeof level.price!=='number'||!Number.isFinite(level.price)) return false;
+      ids.add(level.id);
+    }
     if(!ids.has(inst.referenceLevelId)) return false;
     const scenarioIds=new Set();
-    for(const scenario of inst.scenarios){if(!scenario||typeof scenario.id!=='string'||scenarioIds.has(scenario.id)||!['long','short','wait'].includes(scenario.direction)||!ids.has(scenario.triggerLevelId)|| (scenario.invalidationLevelId&&!ids.has(scenario.invalidationLevelId))||!Array.isArray(scenario.targetLevelIds)||!scenario.targetLevelIds.every(id=>ids.has(id)))return false;scenarioIds.add(scenario.id);}
-    return true;
-  })&&Number.isFinite(candidate.riskPolicy.minimumRewardRisk)&&Number.isFinite(candidate.riskPolicy.dailyLossLimitPct);
+    for(const scenario of inst.scenarios){
+      if(!scenario||typeof scenario.id!=='string'||!scenario.id.trim()||scenarioIds.has(scenario.id)||!['long','short','wait'].includes(scenario.direction)||!ids.has(scenario.triggerLevelId)||(scenario.invalidationLevelId&&!ids.has(scenario.invalidationLevelId))||!Array.isArray(scenario.targetLevelIds)||!scenario.targetLevelIds.every(id=>ids.has(id))) return false;
+      scenarioIds.add(scenario.id);
+    }
+  }
+  const policy=candidate.riskPolicy;
+  if(!Number.isFinite(policy.minimumRewardRisk)||policy.minimumRewardRisk<=0||!Number.isFinite(policy.dailyLossLimitPct)||policy.dailyLossLimitPct<=0||policy.dailyLossLimitPct>100) return false;
+  const checklistIds=new Set();
+  for(const item of candidate.checklist){if(!item||typeof item.id!=='string'||!item.id.trim()||checklistIds.has(item.id)||typeof item.label!=='string'||!item.label.trim())return false;checklistIds.add(item.id);}
+  for(const source of candidate.sources){if(!source||typeof source.title!=='string'||!safeWebUrl(source.url))return false;}
+  return true;
 }
 function exportJson() {
   plan.status=plan.status==='example'?'exported-example':(plan.status||'draft');
@@ -395,7 +409,8 @@ function importJsonFile(file) {
 function calcRR() {
   const bal=Number($('balance').value), riskPct=Number($('riskPct').value), entry=Number($('entry').value), stop=Number($('stop').value), target=Number($('target').value), costs=Number($('costs').value||0), side=$('calcSide').value;
   const out=$('calcResult');
-  if(!(Number.isFinite(bal)&&bal>0&&Number.isFinite(riskPct)&&riskPct>0&&riskPct<=5&&Number.isFinite(entry)&&Number.isFinite(stop)&&Number.isFinite(target)&&Number.isFinite(costs)&&costs>=0)) {out.innerHTML='<div class="callout red"><strong>ورودی نامعتبر:</strong> موجودی، درصد ریسک، ورود، حد ضرر و هدف را بررسی کن.</div>';return;}
+  const requiredValues=['balance','riskPct','entry','stop','target'];
+  if(requiredValues.some(id=>$(id).value.trim()==='')||!(Number.isFinite(bal)&&bal>0&&Number.isFinite(riskPct)&&riskPct>0&&riskPct<=5&&Number.isFinite(entry)&&Number.isFinite(stop)&&Number.isFinite(target)&&Number.isFinite(costs)&&costs>=0)) {out.innerHTML='<div class="callout red"><strong>ورودی نامعتبر:</strong> موجودی، درصد ریسک (بیشتر از صفر تا ۵٪)، قیمت ورود، حد ضرر، هدف و هزینه را بررسی کن.</div>';return;}
   const valid=side==='long'?(stop<entry&&target>entry):(stop>entry&&target<entry);
   if(!valid){out.innerHTML=`<div class="callout red"><strong>چیدمان قیمت نامعتبر است.</strong> برای ${side==='long'?'خرید':'فروش'}، حد ضرر و هدف باید در سمت درست ورود باشند.</div>`;return;}
   const rawRisk=Math.abs(entry-stop),rawReward=Math.abs(target-entry);
@@ -410,7 +425,7 @@ function applyLevelEdits() {
   const inst=getInstrument();
   const inputs=[...document.querySelectorAll('[data-level-id]')];
   const changes=[];
-  for(const input of inputs){const value=Number(input.value);if(!Number.isFinite(value)){toast('همه قیمت‌ها باید عدد معتبر باشند.');input.focus();return;}changes.push({id:input.dataset.levelId,value});}
+  for(const input of inputs){if(input.value.trim()===''){toast('قیمت سطح نمی‌تواند خالی باشد.');input.focus();return;}const value=Number(input.value);if(!Number.isFinite(value)){toast('همه قیمت‌ها باید عدد معتبر باشند.');input.focus();return;}changes.push({id:input.dataset.levelId,value});}
   changes.forEach(c=>{const l=getLevel(inst,c.id);if(l)l.price=c.value;});
   markDirty();renderKpis();renderChart();renderScenarios();renderLevels();savePlan(false);toast('سطوح به‌روزرسانی شد؛ پلن را با چارت بروکر تطبیق بده.');
 }
