@@ -1,0 +1,42 @@
+name: Market Plan quality checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate plan structure and references
+        run: python tests/smoke_test.py
+      - name: Validate sample JSON syntax
+        run: python -m json.tool data/plan-2026-10-12.example.json > /dev/null
+      - name: Check embedded JavaScript syntax
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          html = Path('frontend/index.html').read_text(encoding='utf-8')
+          match = re.search(r'<script>(.*?)</script>', html, re.S)
+          if not match:
+              raise SystemExit('No inline application script found')
+          Path('/tmp/market-plan-app.js').write_text(match.group(1), encoding='utf-8')
+          PY
+          node --check /tmp/market-plan-app.js

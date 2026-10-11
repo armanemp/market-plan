@@ -1,0 +1,421 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://armanemp.github.io/market-plan/schemas/daily-plan.schema.json",
+  "title": "Market Plan Daily Plan",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "id",
+    "date",
+    "timezone",
+    "dataAsOf",
+    "dataMode",
+    "instruments",
+    "riskPolicy",
+    "checklist",
+    "sources"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "timezone": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "example",
+        "draft",
+        "prepared",
+        "reviewed",
+        "exported-example"
+      ]
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date"
+    },
+    "dataAsOf": {
+      "type": "string",
+      "format": "date"
+    },
+    "dataMode": {
+      "type": "string",
+      "enum": [
+        "historical-reference",
+        "needs-refresh",
+        "manually-verified"
+      ]
+    },
+    "title": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "context": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "scenarioWeights": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "label",
+          "weight"
+        ],
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "weight": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "instruments": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "symbol",
+          "name",
+          "priority",
+          "bias",
+          "biasKey",
+          "digits",
+          "referenceLevelId",
+          "levels",
+          "scenarios"
+        ],
+        "properties": {
+          "symbol": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "bias": {
+            "type": "string"
+          },
+          "biasKey": {
+            "enum": [
+              "long",
+              "short",
+              "neutral"
+            ]
+          },
+          "digits": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 8
+          },
+          "referenceLevelId": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "levels": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "label",
+                "price",
+                "type"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "price": {
+                  "type": "number"
+                },
+                "type": {
+                  "enum": [
+                    "reference",
+                    "resistance",
+                    "support",
+                    "mid",
+                    "target"
+                  ]
+                },
+                "date": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "scenarios": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "name",
+                "direction",
+                "triggerLevelId",
+                "targetLevelIds",
+                "entryMethod",
+                "confirmation",
+                "stopMethod",
+                "invalidation"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "direction": {
+                  "enum": [
+                    "long",
+                    "short",
+                    "wait"
+                  ]
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "triggerLevelId": {
+                  "type": "string"
+                },
+                "targetLevelIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "invalidationLevelId": {
+                  "type": "string"
+                },
+                "entryMethod": {
+                  "type": "string"
+                },
+                "confirmation": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "stopMethod": {
+                  "type": "string"
+                },
+                "invalidation": {
+                  "type": "string"
+                },
+                "requirements": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "sessionPlan": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "time",
+          "title",
+          "detail",
+          "decision"
+        ],
+        "properties": {
+          "time": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "decision": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "weekEvents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "day",
+          "time",
+          "event",
+          "impact",
+          "action"
+        ],
+        "properties": {
+          "day": {
+            "type": "string"
+          },
+          "time": {
+            "type": "string"
+          },
+          "event": {
+            "type": "string"
+          },
+          "impact": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "riskPolicy": {
+      "type": "object",
+      "required": [
+        "riskPerTradeMinPct",
+        "riskPerTradeMaxPct",
+        "dailyLossLimitPct",
+        "maxConsecutiveLosses",
+        "maxQualityAttempts",
+        "minimumRewardRisk",
+        "stopRule",
+        "sizingRule"
+      ],
+      "properties": {
+        "riskPerTradeMinPct": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "riskPerTradeMaxPct": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "dailyLossLimitPct": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "maxConsecutiveLosses": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maxQualityAttempts": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "minimumRewardRisk": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "correlatedExposure": {
+          "type": "string"
+        },
+        "stopRule": {
+          "type": "string"
+        },
+        "sizingRule": {
+          "type": "string"
+        }
+      }
+    },
+    "checklist": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "critical"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "critical": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "review": {
+      "type": "object",
+      "properties": {
+        "sessionResult": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "checks": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "title",
+          "url",
+          "kind"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": true
+}

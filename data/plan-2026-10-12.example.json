@@ -1,0 +1,635 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "daily-plan-2026-10-12",
+  "date": "2026-10-12",
+  "timezone": "Asia/Tehran",
+  "status": "example",
+  "generatedAt": "2026-10-11",
+  "dataAsOf": "2026-10-09",
+  "dataMode": "historical-reference",
+  "title": "پلن معاملاتی روزانه | طلا و یورو/دلار",
+  "summary": "طلا دوطرفه و حساس به تیترها؛ EURUSD با سوگیری فروش مشروط. هیچ سناریویی بدون داده تازه، trigger قیمت و نقطه ابطال قابل اجرا نیست.",
+  "context": [
+    "قیمت‌های عددی این نمونه از مرجع بسته‌شدن جمعه ۹ اکتبر ۲۰۲۶ گرفته شده‌اند؛ قیمت زنده یا قیمت تضمین‌شده کارگزار نیستند.",
+    "ریسک ژئوپلیتیک و تیترهای فوری ممکن است گپ، اسپرد غیرعادی یا برگشت تند ایجاد کنند. تیتر و پاسخ رسمی را مجدداً از منابع معتبر بررسی کن.",
+    "تعطیلی بازار اوراق آمریکا لزوماً به معنی تعطیلی FX/CFD یا بازار سهام نیست؛ ساعات و شرایط را در کارگزار بررسی کن.",
+    "وزن سناریوها در سند نمونه فقط برآورد ذهنی است، نه احتمال آماری یا خروجی بک‌تست."
+  ],
+  "scenarioWeights": [
+    {
+      "label": "رنج / شکست کاذب",
+      "weight": 40,
+      "note": "برآورد ذهنی نمونه؛ نه احتمال آماری"
+    },
+    {
+      "label": "حرکت خبری و برگشت",
+      "weight": 35,
+      "note": "برآورد ذهنی نمونه؛ نه احتمال آماری"
+    },
+    {
+      "label": "شکست معتبر و ادامه",
+      "weight": 25,
+      "note": "برآورد ذهنی نمونه؛ نه احتمال آماری"
+    }
+  ],
+  "instruments": [
+    {
+      "symbol": "XAUUSD",
+      "name": "طلا",
+      "priority": 1,
+      "bias": "دوطرفه",
+      "biasKey": "neutral",
+      "digits": 2,
+      "referenceLevelId": "xau-close",
+      "note": "حساسیت بالا به دلار، بازده اوراق و تیترهای ریسک؛ از دنبال‌کردن کندل کشیده خودداری کن.",
+      "levels": [
+        {
+          "id": "xau-target-up-2",
+          "label": "هدف صعودی بالاتر · ۲ اکتبر",
+          "price": 4225.77,
+          "type": "target",
+          "date": "2026-10-02"
+        },
+        {
+          "id": "xau-friday-high",
+          "label": "سقف جمعه · مقاومت اولیه",
+          "price": 4207.28,
+          "type": "resistance",
+          "date": "2026-10-09"
+        },
+        {
+          "id": "xau-close",
+          "label": "بسته‌شدن جمعه · مرجع تاریخی",
+          "price": 4192.86,
+          "type": "reference",
+          "date": "2026-10-09"
+        },
+        {
+          "id": "xau-mid",
+          "label": "میانه محدوده جمعه",
+          "price": 4174.29,
+          "type": "mid",
+          "date": "2026-10-09"
+        },
+        {
+          "id": "xau-friday-low",
+          "label": "کف جمعه · حمایت اولیه",
+          "price": 4141.3,
+          "type": "support",
+          "date": "2026-10-09"
+        },
+        {
+          "id": "xau-target-down-1",
+          "label": "کف ۸ اکتبر · هدف نزولی",
+          "price": 4105.22,
+          "type": "target",
+          "date": "2026-10-08"
+        },
+        {
+          "id": "xau-target-down-2",
+          "label": "کف ۷ اکتبر · سطح پایین‌تر",
+          "price": 4066.31,
+          "type": "target",
+          "date": "2026-10-07"
+        }
+      ],
+      "scenarios": [
+        {
+          "id": "xau-sweep-low-long",
+          "name": "Sweep کف و بازپس‌گیری",
+          "direction": "long",
+          "kind": "بازگشت از نقدینگی",
+          "triggerLevelId": "xau-friday-low",
+          "targetLevelIds": [
+            "xau-mid",
+            "xau-close",
+            "xau-friday-high"
+          ],
+          "invalidationLevelId": "xau-friday-low",
+          "entryMethod": "پس از reclaim سطح و شکست سقف فرعی M5؛ ورود روی retest، نه وسط کندل.",
+          "confirmation": [
+            "نفوذ زیر کف آسیا یا کف جمعه بدون ادامه فروش",
+            "بسته‌شدن M5 دوباره بالای سطح",
+            "شکست سقف فرعی M5 و retest معتبر"
+          ],
+          "stopMethod": "پشت کمینه sweep به‌علاوه بافر متناسب با اسپرد و نوسان.",
+          "invalidation": "بسته‌شدن M15 زیر کف sweep و ادامه فروش.",
+          "requirements": [
+            "دلار جهش یک‌طرفه نداشته باشد",
+            "تا مانع بعدی حداقل 1.5R فضای قابل دفاع باشد"
+          ]
+        },
+        {
+          "id": "xau-sweep-high-short",
+          "name": "Sweep سقف و برگشت",
+          "direction": "short",
+          "kind": "بازگشت از نقدینگی",
+          "triggerLevelId": "xau-friday-high",
+          "targetLevelIds": [
+            "xau-close",
+            "xau-mid",
+            "xau-friday-low"
+          ],
+          "invalidationLevelId": "xau-friday-high",
+          "entryMethod": "پس از بسته‌شدن M5 زیر سطح و شکست کف فرعی؛ روی retest شکست ناموفق.",
+          "confirmation": [
+            "نفوذ بالای سقف آسیا یا سقف جمعه بدون تثبیت",
+            "بسته‌شدن M5 زیر سطح",
+            "شکست کف فرعی M5 و retest نزولی"
+          ],
+          "stopMethod": "پشت سقف sweep با بافر متناسب با اسپرد/نوسان.",
+          "invalidation": "تثبیت M15 بالای 4207.28.",
+          "requirements": [
+            "از معامله روی تیتر بدون تأیید قیمت اجتناب شود",
+            "تا هدف بعدی حداقل 1.5R فضای قابل دفاع باشد"
+          ]
+        },
+        {
+          "id": "xau-break-high-long",
+          "name": "شکست معتبر سقف جمعه",
+          "direction": "long",
+          "kind": "ادامه روند",
+          "triggerLevelId": "xau-friday-high",
+          "targetLevelIds": [
+            "xau-target-up-2"
+          ],
+          "invalidationLevelId": "xau-friday-high",
+          "entryMethod": "بسته‌شدن M15 بالای سطح، retest موفق از بالا و ساختار higher-high / higher-low روی M5.",
+          "confirmation": [
+            "کلوز M15 بالای مقاومت",
+            "retest از بالا حفظ شود",
+            "M5 سقف و کف بالاتر بسازد"
+          ],
+          "stopMethod": "زیر swing بی‌اعتباری؛ بافر طبق نوسان/اسپرد.",
+          "invalidation": "بازپس‌گیری سطح به سمت پایین یا close M15 زیر آن.",
+          "requirements": [
+            "تا هدف 4225.77 دست‌کم 1.5R فضا باقی مانده باشد"
+          ]
+        },
+        {
+          "id": "xau-break-low-short",
+          "name": "شکست معتبر کف جمعه",
+          "direction": "short",
+          "kind": "ادامه روند",
+          "triggerLevelId": "xau-friday-low",
+          "targetLevelIds": [
+            "xau-target-down-1",
+            "xau-target-down-2"
+          ],
+          "invalidationLevelId": "xau-friday-low",
+          "entryMethod": "بسته‌شدن M15 زیر سطح، retest ناموفق از پایین و ساختار نزولی M5.",
+          "confirmation": [
+            "کلوز M15 زیر حمایت",
+            "retest از پایین ناموفق باشد",
+            "M5 lower-high / lower-low بسازد"
+          ],
+          "stopMethod": "بالای swing بی‌اعتباری؛ بافر طبق نوسان/اسپرد.",
+          "invalidation": "reclaim پایدار کف جمعه و شکل‌گیری ساختار صعودی.",
+          "requirements": [
+            "فاصله تا حمایت/هدف بعدی برای حداقل 1.5R کافی باشد"
+          ]
+        }
+      ]
+    },
+    {
+      "symbol": "EURUSD",
+      "name": "یورو/دلار",
+      "priority": 2,
+      "bias": "فشار نزولی مشروط",
+      "biasKey": "short",
+      "digits": 5,
+      "referenceLevelId": "eur-close",
+      "note": "فروش روی شکست تأییدشده یا ریجکت مقاومت مقدم است؛ خرید فقط با reclaim و تغییر ساختار.",
+      "levels": [
+        {
+          "id": "eur-target-up-2",
+          "label": "مقاومت بعدی · ۶ اکتبر",
+          "price": 1.1277,
+          "type": "target",
+          "date": "2026-10-06"
+        },
+        {
+          "id": "eur-target-up-1",
+          "label": "مقاومت تاریخی · ۷ اکتبر",
+          "price": 1.1255,
+          "type": "target",
+          "date": "2026-10-07"
+        },
+        {
+          "id": "eur-friday-high",
+          "label": "سقف جمعه · مقاومت اولیه",
+          "price": 1.1243,
+          "type": "resistance",
+          "date": "2026-10-09"
+        },
+        {
+          "id": "eur-close",
+          "label": "بسته‌شدن جمعه · مرجع تاریخی",
+          "price": 1.12015,
+          "type": "reference",
+          "date": "2026-10-09"
+        },
+        {
+          "id": "eur-friday-low",
+          "label": "کف جمعه · حمایت اولیه",
+          "price": 1.1186,
+          "type": "support",
+          "date": "2026-10-09"
+        },
+        {
+          "id": "eur-support-next",
+          "label": "حمایت ۸ اکتبر",
+          "price": 1.117,
+          "type": "support",
+          "date": "2026-10-08"
+        },
+        {
+          "id": "eur-support-cluster-a",
+          "label": "حمایت ۷ اکتبر",
+          "price": 1.1164,
+          "type": "support",
+          "date": "2026-10-07"
+        },
+        {
+          "id": "eur-support-cluster-b",
+          "label": "کف ۵ اکتبر",
+          "price": 1.116,
+          "type": "support",
+          "date": "2026-10-05"
+        }
+      ],
+      "scenarios": [
+        {
+          "id": "eur-pullback-short",
+          "name": "ریجکت مقاومت پس از پولبک",
+          "direction": "short",
+          "kind": "ادامه فشار نزولی",
+          "triggerLevelId": "eur-friday-high",
+          "targetLevelIds": [
+            "eur-close",
+            "eur-friday-low"
+          ],
+          "invalidationLevelId": "eur-friday-high",
+          "entryMethod": "ریجکت زیر 1.12430 یا sweep سقف آسیا؛ شکست کف فرعی M5 و retest نزولی.",
+          "confirmation": [
+            "ناتوانی در تثبیت بالای مقاومت",
+            "شکست کف فرعی M5",
+            "retest نزولی قابل مشاهده"
+          ],
+          "stopMethod": "بالای سقف sweep با بافر اسپرد.",
+          "invalidation": "reclaim پایدار 1.12430.",
+          "requirements": [
+            "فشار دلار و ساختار H1 را هم‌زمان بررسی کن",
+            "فضای واقعی تا حمایت بعدی برای حداقل 1.5R لازم است"
+          ]
+        },
+        {
+          "id": "eur-break-low-short",
+          "name": "شکست کف جمعه",
+          "direction": "short",
+          "kind": "شکست و retest",
+          "triggerLevelId": "eur-friday-low",
+          "targetLevelIds": [
+            "eur-support-next",
+            "eur-support-cluster-a",
+            "eur-support-cluster-b"
+          ],
+          "invalidationLevelId": "eur-friday-low",
+          "entryMethod": "بسته‌شدن M15 زیر 1.11860 و retest ناموفق از پایین.",
+          "confirmation": [
+            "close M15 زیر حمایت",
+            "retest از پایین ناموفق بماند",
+            "حرکت دلار خلاف سناریو نباشد"
+          ],
+          "stopMethod": "پشت ساختار بی‌اعتباری، نه فاصله ثابت.",
+          "invalidation": "reclaim معتبر 1.11860.",
+          "requirements": [
+            "حمایت‌های 1.11700 و 1.11640–1.11600 نزدیک‌اند؛ R:R را دقیق بسنج"
+          ]
+        },
+        {
+          "id": "eur-reclaim-long",
+          "name": "Sweep حمایت و بازپس‌گیری",
+          "direction": "long",
+          "kind": "بازگشت اصلاحی",
+          "triggerLevelId": "eur-friday-low",
+          "targetLevelIds": [
+            "eur-close",
+            "eur-friday-high"
+          ],
+          "invalidationLevelId": "eur-friday-low",
+          "entryMethod": "نفوذ زیر حمایت، reclaim سریع و شکست سقف فرعی M5؛ ورود روی retest.",
+          "confirmation": [
+            "sweep در 1.11860 یا پایین‌تر",
+            "reclaim سطح با close",
+            "M5 سقف فرعی را بشکند"
+          ],
+          "stopMethod": "زیر کمینه sweep و بافر هزینه معامله.",
+          "invalidation": "close M15 زیر کف sweep و ادامه فروش.",
+          "requirements": [
+            "این معامله خلاف فشار زمینه‌ای است؛ تأیید محکم‌تر و ریسک کمتر لازم است"
+          ]
+        },
+        {
+          "id": "eur-break-high-long",
+          "name": "تغییر روند بالای سقف جمعه",
+          "direction": "long",
+          "kind": "تغییر ساختار",
+          "triggerLevelId": "eur-friday-high",
+          "targetLevelIds": [
+            "eur-target-up-1",
+            "eur-target-up-2"
+          ],
+          "invalidationLevelId": "eur-friday-high",
+          "entryMethod": "کلوز M15 بالای 1.12430، retest موفق و بهبود ساختار H1.",
+          "confirmation": [
+            "close M15 بالای مقاومت",
+            "retest از بالا حفظ شود",
+            "ساختار H1 بهتر شود"
+          ],
+          "stopMethod": "زیر swing بی‌اعتباری، با توجه به اسپرد.",
+          "invalidation": "بازگشت زیر مقاومت و شکست ساختار تازه.",
+          "requirements": [
+            "یک wick بالای سطح به‌تنهایی کافی نیست",
+            "خبر/جهت دلار را به‌عنوان عامل زمینه‌ای بررسی کن"
+          ]
+        }
+      ]
+    }
+  ],
+  "sessionPlan": [
+    {
+      "time": "08:30–09:00",
+      "title": "بازبینی خبرهای شبانه",
+      "detail": "خبرهای تأییدشده، واکنش رسمی، گپ و اسپرد نمادها را بررسی کن.",
+      "decision": "اگر خبر مهم تأیید نشده یا متناقض است، فقط رصد."
+    },
+    {
+      "time": "09:00–10:00",
+      "title": "علامت‌گذاری سطوح و محدوده آسیا",
+      "detail": "سقف/کف جمعه، بسته‌شدن جمعه، سقف/کف آسیا و ATR روی M5/M15.",
+      "decision": "جهت خبر به‌تنهایی محرک ورود نیست."
+    },
+    {
+      "time": "10:00–10:30",
+      "title": "کنترل کیفیت اجرا",
+      "detail": "اسپرد، tick size/value، فاصله تا هدف و شرایط نماد کارگزار را بررسی کن.",
+      "decision": "اگر اسپرد نسبت به همین ساعت به‌شدت بیشتر است، ورود را عقب بینداز."
+    },
+    {
+      "time": "10:30–12:30",
+      "title": "مشاهده شروع لندن",
+      "detail": "شکل محدوده اولیه، sweep و شکست/بازآزمایی را دنبال کن.",
+      "decision": "وسط محدوده وارد نشو؛ close و retest یا sweep+reclaim لازم است."
+    },
+    {
+      "time": "13:00",
+      "title": "سخنرانی Sarah Breeden · طبق سند نمونه",
+      "detail": "اثر مستقیم‌تر بر پوند؛ واکنش کلی دلار/ریسک را پایش کن.",
+      "decision": "زمان و رویداد را قبل از استفاده مجدداً تأیید کن."
+    },
+    {
+      "time": "13:15–15:45",
+      "title": "ارزیابی ادامه ساختار لندن",
+      "detail": "پولبک و حد ضرر منطقی را بررسی کن؛ کندل کشیده را تعقیب نکن.",
+      "decision": "R:R برنامه‌ریزی‌شده باید حداقل 1.5 باشد."
+    },
+    {
+      "time": "16:20",
+      "title": "سخنرانی Catherine Mann · طبق سند نمونه",
+      "detail": "رویداد مستقیم‌تر برای GBP؛ تیتر هم‌زمان را کنترل کن.",
+      "decision": "زمان رویدادها را از تقویم جاری تأیید کن."
+    },
+    {
+      "time": "15:30–17:00",
+      "title": "هم‌پوشانی لندن و نیویورک",
+      "detail": "نقدشوندگی و اسپرد XAUUSD و EURUSD؛ شرایط اجرای کارگزار.",
+      "decision": "ساعات بازار را با زمان محلی کارگزار تطبیق بده."
+    },
+    {
+      "time": "17:00–18:30",
+      "title": "مدیریت و بازبینی پوزیشن",
+      "detail": "فقط طبق برنامه خروج/تریل کن؛ اگر هر دو سمت sweep شده‌اند، رنج محتمل است.",
+      "decision": "ورود انتقامی یا از ترس جا ماندن ممنوع."
+    },
+    {
+      "time": "19:10–19:40",
+      "title": "آماده‌سازی برای سخنرانی فدرال رزرو",
+      "detail": "ریسک معاملات باز، دلار، خبر انرژی و شرایط بازار را بازبینی کن.",
+      "decision": "در 10–15 دقیقه قبل خبر از پوزیشن جدید دوری کن."
+    },
+    {
+      "time": "19:40",
+      "title": "سخنرانی Beth Hammack · طبق سند نمونه",
+      "detail": "پتانسیل اثرگذاری بر دلار، طلا و EURUSD.",
+      "decision": "به تیتر تنها واکنش نده؛ بعد از آرامش، ساختار قیمت را ببین."
+    },
+    {
+      "time": "20:15–21:00",
+      "title": "جمع‌بندی روز",
+      "detail": "اسکرین‌شات، دلیل ورود/عدم ورود، رعایت قانون‌ها و نتیجه را ثبت کن.",
+      "decision": "بدون معامله ماندن، اگر ستاپ کامل نشده، خروجی معتبر روز است."
+    }
+  ],
+  "weekEvents": [
+    {
+      "day": "سه‌شنبه ۱۳ اکتبر",
+      "time": "09:30",
+      "event": "CPI نهایی آلمان m/m · طبق سند نمونه",
+      "impact": "متوسط برای EURUSD",
+      "action": "actual در برابر forecast و واکنش قیمت را بررسی کن."
+    },
+    {
+      "day": "سه‌شنبه ۱۳ اکتبر",
+      "time": "11:15",
+      "event": "سخنرانی Christopher Waller · طبق سند نمونه",
+      "impact": "بالقوه مهم برای دلار و طلا",
+      "action": "در صورت تغییر لحن، سوگیری دلار را مجدداً بسنج."
+    },
+    {
+      "day": "چهارشنبه ۱۴ اکتبر",
+      "time": "05:00",
+      "event": "تورم و PPI چین · طبق سند نمونه",
+      "impact": "غیرمستقیم بر ریسک و کالاها",
+      "action": "به‌تنهایی مبنای ورود طلا نباشد."
+    },
+    {
+      "day": "چهارشنبه ۱۴ اکتبر",
+      "time": "12:00",
+      "event": "سخنرانی Christine Lagarde · طبق سند نمونه",
+      "impact": "مهم برای EURUSD",
+      "action": "زمان رسمی را دوباره بررسی و ریسک را پیش از تیتر مدیریت کن."
+    },
+    {
+      "day": "چهارشنبه ۱۴ اکتبر",
+      "time": "16:00",
+      "event": "CPI و Core CPI آمریکا · طبق سند نمونه",
+      "impact": "رویداد محوری هفته در این سند",
+      "action": "زمان رسمی انتشار را از تقویم BLS تأیید کن؛ از معامله لحظه‌ای خبر پرهیز کن."
+    },
+    {
+      "day": "چهارشنبه ۱۴ اکتبر",
+      "time": "21:00–21:30",
+      "event": "سخنرانی Barkin و Beige Book · طبق سند نمونه",
+      "impact": "ممکن است روایت CPI را تقویت/تضعیف کند",
+      "action": "اگر پیام‌ها خلاف هم‌اند، از سوگیری یک‌طرفه بپرهیز."
+    },
+    {
+      "day": "پنجشنبه ۱۵ اکتبر",
+      "time": "04:00",
+      "event": "اشتغال استرالیا · طبق سند نمونه",
+      "impact": "مستقیم‌تر برای AUD",
+      "action": "فقط اگر AUDUSD بررسی می‌شود مهم‌تر است."
+    },
+    {
+      "day": "پنجشنبه ۱۵ اکتبر",
+      "time": "09:30",
+      "event": "GDP و تولید/تجارت بریتانیا · طبق سند نمونه",
+      "impact": "مستقیم‌تر برای GBP",
+      "action": "GBPUSD فقط در صورت ستاپ برتر از دو نماد اصلی."
+    },
+    {
+      "day": "پنجشنبه ۱۵ اکتبر",
+      "time": "16:00",
+      "event": "PPI آمریکا و Retail Sales · طبق سند نمونه",
+      "impact": "بالقوه مهم برای دلار و طلا",
+      "action": "پس از خبر، ابتدا close/retest و نه کندل اول را ارزیابی کن."
+    },
+    {
+      "day": "جمعه ۱۶ اکتبر",
+      "time": "12:30",
+      "event": "CPI نهایی منطقه یورو · طبق سند نمونه",
+      "impact": "مهم برای EURUSD",
+      "action": "پوزیشن باز، حد ضرر و زمان رویداد را از قبل بازبینی کن."
+    },
+    {
+      "day": "جمعه ۱۶ اکتبر",
+      "time": "16:00",
+      "event": "Import Prices آمریکا · طبق سند نمونه",
+      "impact": "متوسط برای دلار",
+      "action": "از بیش‌معامله‌گری بعد از رویدادهای هفته پرهیز کن."
+    }
+  ],
+  "riskPolicy": {
+    "riskPerTradeMinPct": 0.25,
+    "riskPerTradeMaxPct": 0.5,
+    "dailyLossLimitPct": 1.0,
+    "maxConsecutiveLosses": 2,
+    "maxQualityAttempts": 2,
+    "minimumRewardRisk": 1.5,
+    "correlatedExposure": "XAUUSD و EURUSD می‌توانند در معرض عامل مشترک دلار باشند؛ ریسک هم‌بسته را تجمیع کن.",
+    "stopRule": "حد ضرر پشت ساختار بی‌اعتباری + بافر هزینه و نوسان؛ نه تعداد پوینت ثابت.",
+    "sizingRule": "محاسبه حجم باید با tick size/value و مشخصات قرارداد همان بروکر انجام شود. این داشبورد به‌تنهایی لات را حدس نمی‌زند."
+  },
+  "checklist": [
+    {
+      "id": "news",
+      "label": "خبرهای فوری و زمان دقیق رویدادها را دوباره تأیید کرده‌ام.",
+      "critical": true
+    },
+    {
+      "id": "fresh-price",
+      "label": "قیمت زنده نماد و زمان داده را در کارگزار بررسی کرده‌ام.",
+      "critical": true
+    },
+    {
+      "id": "spread",
+      "label": "اسپرد و شرایط اجرای سفارش عادی است.",
+      "critical": true
+    },
+    {
+      "id": "htf",
+      "label": "جهت H1 و ساختار M15 را مشخص کرده‌ام.",
+      "critical": true
+    },
+    {
+      "id": "level",
+      "label": "سطح مهم مشخص است؛ وسط رنج وارد نمی‌شوم.",
+      "critical": true
+    },
+    {
+      "id": "close",
+      "label": "کندل M5 تأییدی بسته شده است؛ صرفاً به wick واکنش نمی‌دهم.",
+      "critical": true
+    },
+    {
+      "id": "retest",
+      "label": "retest یا sweep+reclaim قابل مشاهده است.",
+      "critical": true
+    },
+    {
+      "id": "stop",
+      "label": "حد ضرر پشت سطح بی‌اعتباری و خارج از نویز عادی است.",
+      "critical": true
+    },
+    {
+      "id": "rr",
+      "label": "تا هدف واقعی حداقل 1.5R فضا وجود دارد.",
+      "critical": true
+    },
+    {
+      "id": "risk",
+      "label": "ریسک معامله و مواجهه هم‌بسته USD را محاسبه کرده‌ام.",
+      "critical": true
+    },
+    {
+      "id": "event-window",
+      "label": "در پنجره پرریسک خبر، ورود تازه نمی‌گیرم.",
+      "critical": true
+    },
+    {
+      "id": "invalidation",
+      "label": "قیمت ابطال سناریو را قبل از ورود می‌دانم.",
+      "critical": true
+    }
+  ],
+  "review": {
+    "sessionResult": "not-started",
+    "notes": "",
+    "checks": {}
+  },
+  "sources": [
+    {
+      "title": "Forex Factory · تقویم اقتصادی",
+      "url": "https://www.forexfactory.com/calendar/",
+      "kind": "calendar",
+      "note": "زمان رویدادها و اهمیت را نزدیک انتشار دوباره بررسی کن."
+    },
+    {
+      "title": "U.S. Bureau of Labor Statistics · برنامه انتشار داده‌ها",
+      "url": "https://www.bls.gov/schedule/2026/10_sched_list.htm",
+      "kind": "official",
+      "note": "مرجع رسمی زمان CPI/PPI در سند نمونه."
+    },
+    {
+      "title": "U.S. Census Bureau · تقویم شاخص‌ها",
+      "url": "https://www.census.gov/economic-indicators/calendar-listview.html",
+      "kind": "official",
+      "note": "مرجع رسمی زمان Retail Sales در سند نمونه."
+    },
+    {
+      "title": "Federal Reserve Bank of New York · تعطیلات",
+      "url": "https://www.newyorkfed.org/aboutthefed/holiday_schedule.html",
+      "kind": "official",
+      "note": "تقویم تعطیلات رسمی؛ ساعات بروکر را هم بررسی کن."
+    },
+    {
+      "title": "Reuters · گزارش ریسک منطقه‌ای، ۱۱ اکتبر",
+      "url": "https://www.reuters.com/world/middle-east/saudi-stocks-slide-after-attack-riyadh-airport-2026-10-11/",
+      "kind": "news",
+      "note": "خبر تاریخی در سند نمونه؛ قبل از استفاده، وضعیت و پاسخ رسمی را تازه‌سازی کن."
+    },
+    {
+      "title": "ChartExchange · XAUUSD historical",
+      "url": "https://chartexchange.com/symbol/forex-xauusd/historical/",
+      "kind": "price",
+      "note": "فقط مرجع تاریخی؛ قیمت کارگزار معیار اجراست."
+    },
+    {
+      "title": "ChartExchange · EURUSD historical",
+      "url": "https://chartexchange.com/symbol/forex-eurusd/historical/",
+      "kind": "price",
+      "note": "فقط مرجع تاریخی؛ قیمت کارگزار معیار اجراست."
+    }
+  ]
+}
