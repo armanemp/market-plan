@@ -239,7 +239,7 @@ function renderKpis() {
 }
 function renderContext() {
   $('contextList').innerHTML=(plan.context||[]).map((text,i)=>`<div class="context-item"><span class="context-bullet">${String(i+1).padStart(2,'0')}</span><p>${escapeHtml(text)}</p></div>`).join('');
-  $('weightList').innerHTML=(plan.scenarioWeights||[]).map((item,i)=>`<div><div class="weight-top"><span>${escapeHtml(item.label)}</span><b>${numberFormat(item.weight,0)}٪</b></div><div class="bar" aria-label="وزن ذهنی ${escapeHtml(item.label)}"><span style="width:${Math.max(0,Math.min(100,Number(item.weight)||0))}%"></span></div><div class="tiny" style="margin-top:3px">${escapeHtml(item.note||'برآورد کیفی')}</div></div>`).join('');
+  $('weightList').innerHTML=(plan.scenarioWeights||[]).map((item,i)=>`<div><div class="weight-top"><span>${escapeHtml(item.label)}</span><b>${numberFormat(item.weight,0)}٪</b></div><div class="bar" aria-label="وزن ذهنی ${escapeHtml(item.label)}"><span style="width:${Math.max(0,Math.min(100,Number(item.weight)||0))}%"></span></div><div class="tiny" style="margin-top:3px">${escapeHtml(item.note||'برآورد کیفی')}</div></div>`).join('') || '<div class="small">وزن سناریوها برای این تاریخ ثبت نشده است؛ دادهٔ تازه را در فایل JSON پلن وارد کن.</div>';
 }
 function renderInstrumentTabs() {
   document.querySelectorAll('[data-instrument]').forEach(btn=>btn.setAttribute('aria-pressed',String(btn.dataset.instrument===selectedSymbol)));
@@ -312,8 +312,8 @@ function renderLevels() {
   $('levelInputs').innerHTML=ordered.map(l=>`<div class="field"><label for="level-${escapeHtml(l.id)}">${escapeHtml(l.label)} · ${escapeHtml(typeLabel(l.type))}</label><input class="edit-level-input" id="level-${escapeHtml(l.id)}" data-level-id="${escapeHtml(l.id)}" type="number" step="any" value="${Number(l.price)}" inputmode="decimal"></div>`).join('');
 }
 function renderSchedule() {
-  $('sessionPlan').innerHTML=(plan.sessionPlan||[]).map(item=>`<div class="schedule-item"><div class="schedule-time">${escapeHtml(item.time)}</div><div><h4>${escapeHtml(item.title)}</h4><p>${escapeHtml(item.detail)}</p><div class="schedule-action">تصمیم: ${escapeHtml(item.decision)}</div></div></div>`).join('');
-  $('weekEvents').innerHTML=(plan.weekEvents||[]).map(item=>`<tr><td><b>${escapeHtml(item.day)}</b><br><span class="schedule-time">${escapeHtml(item.time)}</span></td><td>${escapeHtml(item.event)}</td><td>${escapeHtml(item.impact)}<br><span class="muted">${escapeHtml(item.action)}</span></td></tr>`).join('');
+  $('sessionPlan').innerHTML=(plan.sessionPlan||[]).map(item=>`<div class="schedule-item"><div class="schedule-time">${escapeHtml(item.time)}</div><div><h4>${escapeHtml(item.title)}</h4><p>${escapeHtml(item.detail)}</p><div class="schedule-action">تصمیم: ${escapeHtml(item.decision)}</div></div></div>`).join('') || '<div class="callout">برنامهٔ جلسه برای این تاریخ ثبت نشده است؛ پس از بررسی داده‌های روز، آن را در JSON پلن وارد کن.</div>';
+  $('weekEvents').innerHTML=(plan.weekEvents||[]).map(item=>`<tr><td><b>${escapeHtml(item.day)}</b><br><span class="schedule-time">${escapeHtml(item.time)}</span></td><td>${escapeHtml(item.event)}</td><td>${escapeHtml(item.impact)}<br><span class="muted">${escapeHtml(item.action)}</span></td></tr>`).join('') || '<tr><td colspan="3"><div class="small">برای این تاریخ رویدادی ثبت نشده است؛ تقویم به‌روز را وارد کن.</div></td></tr>';
 }
 function renderRisk() {
   const r=plan.riskPolicy;
