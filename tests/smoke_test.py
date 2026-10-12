@@ -74,5 +74,11 @@ class SmokeTests(unittest.TestCase):
         self.assertIn("requiredValues.some(id=>$(id).value.trim()==='')", self.html)
         self.assertIn("قیمت سطح نمی‌تواند خالی باشد", self.html)
 
+    def test_runtime_validation_suite_is_present_and_wired(self):
+        self.assertTrue((ROOT / "tests" / "runtime-validation.mjs").exists())
+        self.assertIn("node tests/runtime-validation.mjs", (ROOT / ".github" / "workflows" / "quality.yml").read_text(encoding="utf-8"))
+        self.assertIn("if(dirty&&!savePlan(false))", self.html)
+        self.assertIn("function normalizeReview(value)", self.html)
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

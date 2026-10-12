@@ -26,6 +26,8 @@ jobs:
           node-version: '22'
       - name: Validate plan structure and references
         run: python tests/smoke_test.py
+      - name: Exercise production plan import validator
+        run: node tests/runtime-validation.mjs
       - name: Validate sample JSON syntax
         run: python -m json.tool data/plan-2026-10-12.example.json > /dev/null
       - name: Check embedded JavaScript syntax

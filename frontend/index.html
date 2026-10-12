@@ -348,62 +348,120 @@ function renderReview() {
 function renderAll() {
   renderHeader(); renderKpis(); renderContext(); renderInstrumentTabs(); renderChart(); renderScenarios(); renderLevels(); renderSchedule(); renderRisk(); renderChecklist(); renderSources(); renderReview();
 }
+function normalizeReview(value) {
+  const source=value&&typeof value==='object'&&!Array.isArray(value)?value:{};
+  const allowed=new Set(['not-started','no-trade','followed-plan','deviated','review-needed']);
+  const checks=Object.create(null);
+  if(source.checks&&typeof source.checks==='object'&&!Array.isArray(source.checks)){
+    for(const [id,checked] of Object.entries(source.checks)){
+      if(id.trim()&&typeof checked==='boolean') checks[id]=checked;
+    }
+  }
+  return {sessionResult:allowed.has(source.sessionResult)?source.sessionResult:'not-started',notes:typeof source.notes==='string'?source.notes:'',checks};
+}
+
 function savePlan(showMessage=true) {
-  plan.review=plan.review||{sessionResult:'not-started',notes:'',checks:{}};
+  plan.review=normalizeReview(plan.review);
   try { localStorage.setItem(currentStorageKey(),JSON.stringify(plan)); localStorage.setItem(UI_PREF_KEY,JSON.stringify({theme:document.documentElement.dataset.theme})); dirty=false; $('footerStatus').textContent='ذخیره شد · '+new Date().toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'}); if(showMessage) toast('پلن این روز در همین مرورگر ذخیره شد.'); return true; }
   catch(error) { if(showMessage) toast('ذخیره محلی ممکن نشد؛ خروجی JSON بگیر تا اطلاعات از دست نرود.'); return false; }
 }
 function switchDate(nextDate) {
   if(!parseIsoDate(nextDate)) { toast('تاریخ معتبر وارد کن.'); $('planDate').value=plan.date; return; }
-  if(dirty && !confirm('تغییرات ذخیره‌نشده وجود دارد. با رفتن به تاریخ دیگر، ادامه می‌دهی؟')) { $('planDate').value=plan.date; return; }
-  savePlan(false);
+  if(nextDate===plan.date) { $('planDate').value=plan.date; return; }
+  if(dirty&&!savePlan(false)) {
+    toast('تغییر تاریخ متوقف شد؛ ذخیرهٔ پلن فعلی ممکن نشد.');
+    $('planDate').value=plan.date;
+    return;
+  }
   let existing=null;
   try { const raw=localStorage.getItem(STORAGE_PREFIX+nextDate); if(raw) existing=JSON.parse(raw); } catch(e) { existing=null; }
-  if(existing && isValidPlan(existing)) { plan=existing; toast('پلن ذخیره‌شده این تاریخ بارگذاری شد.'); }
-  else {
-    plan=deepClone(plan); plan.id='daily-plan-'+nextDate; plan.date=nextDate; plan.status='draft'; plan.generatedAt=new Date().toISOString().slice(0,10); plan.dataAsOf=''; plan.dataMode='needs-refresh'; plan.review={sessionResult:'not-started',notes:'',checks:{}};
+  if(existing && isValidPlan(existing)) {
+    plan=existing;
+    plan.review=normalizeReview(plan.review);
+    toast('پلن ذخیره‌شده این تاریخ بارگذاری شد.');
+  } else {
+    plan=deepClone(plan); plan.id='daily-plan-'+nextDate; plan.date=nextDate; plan.status='draft'; plan.generatedAt=new Date().toISOString().slice(0,10); plan.dataAsOf=''; plan.dataMode='needs-refresh'; plan.review=normalizeReview(null);
     plan.summary='پیش‌نویس روز جدید؛ قبل از تصمیم‌گیری، قیمت مرجع، خبرها، سطوح و سناریوها را دوباره نوسازی کن.';
-    plan.context=[`این پلن برای ${nextDate} از ساختار روز قبل کپی شده و هنوز داده بازارِ امروز ندارد.`, 'سطوح تاریخی قبلی صرفاً پیش‌نویس هستند؛ پیش از تحلیل، آن‌ها را با چارت زنده کارگزار تطبیق بده.', 'تقویم خبر و زمان محلی تمام رویدادها باید از منبع رسمی/به‌روز کنترل شود.'];
+    plan.context=['این پلن برای '+nextDate+' از ساختار روز قبل کپی شده و هنوز داده بازارِ امروز ندارد.', 'سطوح تاریخی قبلی صرفاً پیش‌نویس هستند؛ پیش از تحلیل، آن‌ها را با چارت زنده کارگزار تطبیق بده.', 'تقویم خبر و زمان محلی تمام رویدادها باید از منبع رسمی/به‌روز کنترل شود.'];
     toast('پیش‌نویس جدید ساخته شد؛ داده‌های روز قبل را قبل از استفاده نوسازی کن.');
   }
-  selectedSymbol='XAUUSD'; selectedScenarioId=getInstrument().scenarios[0]?.id; dirty=true; renderAll(); savePlan(false);
+  selectedSymbol=plan.instruments.some(item=>item.symbol===selectedSymbol)?selectedSymbol:(plan.instruments.some(item=>item.symbol==='XAUUSD')?'XAUUSD':plan.instruments[0].symbol);
+  selectedScenarioId=getInstrument().scenarios[0]?.id;
+  dirty=true; renderAll(); savePlan(false);
 }
 function isValidPlan(candidate) {
-  if(!candidate||typeof candidate!=='object'||Array.isArray(candidate)||candidate.schemaVersion!=='1.0.0'||!parseIsoDate(candidate.date)||typeof candidate.timezone!=='string'||!candidate.timezone.trim()||!Array.isArray(candidate.instruments)||!candidate.instruments.length||!candidate.riskPolicy||!Array.isArray(candidate.checklist)||!Array.isArray(candidate.sources)) return false;
-  if(candidate.dataAsOf && !parseIsoDate(candidate.dataAsOf)) return false;
+  const text=value=>typeof value==='string'&&value.trim().length>0;
+  const optionalText=(obj,key)=>obj[key]===undefined||typeof obj[key]==='string';
+  const stringArray=value=>Array.isArray(value)&&value.every(item=>typeof item==='string');
+  const plainObject=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
+  if(!plainObject(candidate)||candidate.schemaVersion!=='1.0.0'||!text(candidate.id)||!parseIsoDate(candidate.date)||!text(candidate.timezone)) return false;
+  if(typeof candidate.dataAsOf!=='string'||(candidate.dataAsOf!==''&&!parseIsoDate(candidate.dataAsOf))) return false;
+  if(!['historical-reference','needs-refresh','manually-verified'].includes(candidate.dataMode)) return false;
+  if(candidate.status!==undefined&&!['example','draft','prepared','reviewed','exported-example'].includes(candidate.status)) return false;
+  if(candidate.generatedAt!==undefined&&!parseIsoDate(candidate.generatedAt)) return false;
+  for(const key of ['title','summary']) if(!optionalText(candidate,key)) return false;
+  if(candidate.context!==undefined&&!stringArray(candidate.context)) return false;
+  if(candidate.scenarioWeights!==undefined){
+    if(!Array.isArray(candidate.scenarioWeights)||!candidate.scenarioWeights.every(item=>plainObject(item)&&text(item.label)&&typeof item.weight==='number'&&Number.isFinite(item.weight)&&item.weight>=0&&item.weight<=100&&optionalText(item,'note'))) return false;
+  }
+  if(candidate.sessionPlan!==undefined){
+    if(!Array.isArray(candidate.sessionPlan)||!candidate.sessionPlan.every(item=>plainObject(item)&&['time','title','detail','decision'].every(key=>text(item[key])))) return false;
+  }
+  if(candidate.weekEvents!==undefined){
+    if(!Array.isArray(candidate.weekEvents)||!candidate.weekEvents.every(item=>plainObject(item)&&['day','time','event','impact','action'].every(key=>text(item[key])))) return false;
+  }
+  if(!Array.isArray(candidate.instruments)||!candidate.instruments.length) return false;
+  if(!plainObject(candidate.riskPolicy)||!Array.isArray(candidate.checklist)||!candidate.checklist.length||!Array.isArray(candidate.sources)||!candidate.sources.length) return false;
+  const policy=candidate.riskPolicy;
+  for(const key of ['riskPerTradeMinPct','riskPerTradeMaxPct','dailyLossLimitPct','minimumRewardRisk']){
+    if(typeof policy[key]!=='number'||!Number.isFinite(policy[key])||policy[key]<=0) return false;
+  }
+  if(policy.riskPerTradeMinPct>policy.riskPerTradeMaxPct||policy.dailyLossLimitPct>100) return false;
+  if(!Number.isInteger(policy.maxConsecutiveLosses)||policy.maxConsecutiveLosses<1||!Number.isInteger(policy.maxQualityAttempts)||policy.maxQualityAttempts<1) return false;
+  for(const key of ['correlatedExposure','stopRule','sizingRule']) if(!text(policy[key])) return false;
   const symbols=new Set();
   for(const inst of candidate.instruments){
-    if(!inst||typeof inst.symbol!=='string'||!inst.symbol.trim()||symbols.has(inst.symbol)||typeof inst.name!=='string'||!inst.name.trim()||!Number.isInteger(inst.digits)||inst.digits<0||inst.digits>8||!Array.isArray(inst.levels)||!inst.levels.length||!Array.isArray(inst.scenarios)||!inst.scenarios.length) return false;
+    if(!plainObject(inst)||!text(inst.symbol)||symbols.has(inst.symbol)||!text(inst.name)||!Number.isInteger(inst.priority)||inst.priority<1||!text(inst.bias)||!['long','short','neutral'].includes(inst.biasKey)||!Number.isInteger(inst.digits)||inst.digits<0||inst.digits>8||!text(inst.referenceLevelId)||!Array.isArray(inst.levels)||!inst.levels.length||!Array.isArray(inst.scenarios)||!inst.scenarios.length||!optionalText(inst,'note')) return false;
     symbols.add(inst.symbol);
     const ids=new Set();
     for(const level of inst.levels){
-      if(!level||typeof level.id!=='string'||!level.id.trim()||ids.has(level.id)||typeof level.label!=='string'||!level.label.trim()||typeof level.price!=='number'||!Number.isFinite(level.price)) return false;
+      if(!plainObject(level)||!text(level.id)||ids.has(level.id)||!text(level.label)||typeof level.price!=='number'||!Number.isFinite(level.price)||!['reference','resistance','support','mid','target'].includes(level.type)||!optionalText(level,'date')) return false;
       ids.add(level.id);
     }
     if(!ids.has(inst.referenceLevelId)) return false;
     const scenarioIds=new Set();
     for(const scenario of inst.scenarios){
-      if(!scenario||typeof scenario.id!=='string'||!scenario.id.trim()||scenarioIds.has(scenario.id)||!['long','short','wait'].includes(scenario.direction)||!ids.has(scenario.triggerLevelId)||(scenario.invalidationLevelId&&!ids.has(scenario.invalidationLevelId))||!Array.isArray(scenario.targetLevelIds)||!scenario.targetLevelIds.every(id=>ids.has(id))) return false;
+      if(!plainObject(scenario)||!text(scenario.id)||scenarioIds.has(scenario.id)||!text(scenario.name)||!['long','short','wait'].includes(scenario.direction)||!text(scenario.triggerLevelId)||!ids.has(scenario.triggerLevelId)||!optionalText(scenario,'invalidationLevelId')||(scenario.invalidationLevelId&&!ids.has(scenario.invalidationLevelId))||!Array.isArray(scenario.targetLevelIds)||!scenario.targetLevelIds.every(id=>text(id)&&ids.has(id))) return false;
       scenarioIds.add(scenario.id);
+      for(const key of ['kind','entryMethod','stopMethod','invalidation']) if(!optionalText(scenario,key)) return false;
+      for(const key of ['confirmation','requirements']) if(scenario[key]!==undefined&&!stringArray(scenario[key])) return false;
     }
   }
-  const policy=candidate.riskPolicy;
-  if(!Number.isFinite(policy.minimumRewardRisk)||policy.minimumRewardRisk<=0||!Number.isFinite(policy.dailyLossLimitPct)||policy.dailyLossLimitPct<=0||policy.dailyLossLimitPct>100) return false;
   const checklistIds=new Set();
-  for(const item of candidate.checklist){if(!item||typeof item.id!=='string'||!item.id.trim()||checklistIds.has(item.id)||typeof item.label!=='string'||!item.label.trim())return false;checklistIds.add(item.id);}
-  for(const source of candidate.sources){if(!source||typeof source.title!=='string'||!safeWebUrl(source.url))return false;}
+  for(const item of candidate.checklist){
+    if(!plainObject(item)||!text(item.id)||checklistIds.has(item.id)||!text(item.label)||(item.critical!==undefined&&typeof item.critical!=='boolean')) return false;
+    checklistIds.add(item.id);
+  }
+  for(const source of candidate.sources){
+    if(!plainObject(source)||!text(source.title)||!safeWebUrl(source.url)||!optionalText(source,'kind')||!optionalText(source,'note')) return false;
+  }
+  if(candidate.review!==undefined){
+    if(!plainObject(candidate.review)||!optionalText(candidate.review,'sessionResult')||!optionalText(candidate.review,'notes')) return false;
+    if(candidate.review.checks!==undefined&&(!plainObject(candidate.review.checks)||!Object.values(candidate.review.checks).every(value=>typeof value==='boolean'))) return false;
+  }
   return true;
 }
+
 function exportJson() {
   plan.status=plan.status==='example'?'exported-example':(plan.status||'draft');
-  plan.review.notes=$('reviewNotes').value;
+  plan.review=normalizeReview(plan.review); plan.review.notes=$('reviewNotes').value;
   const blob=new Blob([JSON.stringify(plan,null,2)+'\n'],{type:'application/json;charset=utf-8'});
   const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`market-plan-${plan.date}.json`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000); toast('فایل JSON پلن آماده شد.');
 }
 function importJsonFile(file) {
   if(!file) return;
   const reader=new FileReader();
-  reader.onload=()=>{try{const parsed=JSON.parse(String(reader.result));if(!isValidPlan(parsed))throw new Error('ساختار');if(!confirm('پلن فعلی با محتوای فایل جایگزین شود؟'))return;plan=parsed;selectedSymbol=plan.instruments[0].symbol;selectedScenarioId=getInstrument().scenarios[0]?.id;dirty=true;renderAll();savePlan(false);toast('پلن JSON بارگذاری شد.');}catch(e){toast('فایل JSON معتبر نیست یا ساختار نسخه 1 را ندارد.');}};
+  reader.onload=()=>{try{const parsed=JSON.parse(String(reader.result));if(!isValidPlan(parsed))throw new Error('ساختار');if(!confirm('پلن فعلی با محتوای فایل جایگزین شود؟'))return;parsed.review=normalizeReview(parsed.review);plan=parsed;selectedSymbol=plan.instruments[0].symbol;selectedScenarioId=getInstrument().scenarios[0]?.id;dirty=true;renderAll();savePlan(false);toast('پلن JSON بارگذاری شد.');}catch(e){toast('فایل JSON معتبر نیست یا ساختار نسخه 1 را ندارد.');}};
   reader.onerror=()=>toast('خواندن فایل ممکن نشد.');reader.readAsText(file);
 }
 function calcRR() {
@@ -459,7 +517,7 @@ function bindEvents() {
 function init() {
   try {const prefs=JSON.parse(localStorage.getItem(UI_PREF_KEY)||'{}');if(prefs.theme==='light'||prefs.theme==='dark')document.documentElement.dataset.theme=prefs.theme;}catch(e){}
   try {const existing=localStorage.getItem(currentStorageKey());if(existing){const parsed=JSON.parse(existing);if(isValidPlan(parsed))plan=parsed;}}catch(e){}
-  if(!plan.review)plan.review={sessionResult:'not-started',notes:'',checks:{}};
+  plan.review=normalizeReview(plan.review);
   renderAll();bindEvents();dirty=false;$('footerStatus').textContent=plan.status==='example'?'نمونه اولیه · تغییرات را ذخیره کن':'ذخیره‌شده در مرورگر';
 }
 init();
