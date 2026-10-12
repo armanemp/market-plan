@@ -78,6 +78,7 @@ class SmokeTests(unittest.TestCase):
         self.assertTrue((ROOT / "tests" / "runtime-validation.mjs").exists())
         self.assertIn("node tests/runtime-validation.mjs", (ROOT / ".github" / "workflows" / "quality.yml").read_text(encoding="utf-8"))
         self.assertIn("if(dirty&&!savePlan(false))", self.html)
+        self.assertIn("plan.scenarioWeights=[]; plan.sessionPlan=[]; plan.weekEvents=[];", self.html)
         self.assertIn("function normalizeReview(value)", self.html)
 
 if __name__ == "__main__":

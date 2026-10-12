@@ -382,7 +382,8 @@ function switchDate(nextDate) {
   } else {
     plan=deepClone(plan); plan.id='daily-plan-'+nextDate; plan.date=nextDate; plan.status='draft'; plan.generatedAt=new Date().toISOString().slice(0,10); plan.dataAsOf=''; plan.dataMode='needs-refresh'; plan.review=normalizeReview(null);
     plan.summary='پیش‌نویس روز جدید؛ قبل از تصمیم‌گیری، قیمت مرجع، خبرها، سطوح و سناریوها را دوباره نوسازی کن.';
-    plan.context=['این پلن برای '+nextDate+' از ساختار روز قبل کپی شده و هنوز داده بازارِ امروز ندارد.', 'سطوح تاریخی قبلی صرفاً پیش‌نویس هستند؛ پیش از تحلیل، آن‌ها را با چارت زنده کارگزار تطبیق بده.', 'تقویم خبر و زمان محلی تمام رویدادها باید از منبع رسمی/به‌روز کنترل شود.'];
+    plan.context=['این پلن برای '+nextDate+' از ساختار روز قبل کپی شده و هنوز داده بازارِ امروز ندارد.', 'سطوح تاریخی قبلی صرفاً پیش‌نویس هستند؛ پیش از تحلیل، آن‌ها را با چارت زنده کارگزار تطبیق بده.', 'تقویم خبر و زمان محلی تمام رویدادها باید از منبع رسمی/به‌روز کنترل شود.', 'برنامه جلسه، رویدادهای زمان‌بندی‌شده و وزن‌های سناریوی روز قبل پاک شده‌اند؛ پس از بازبینی داده امروز دوباره آن‌ها را وارد کن.'];
+    plan.scenarioWeights=[]; plan.sessionPlan=[]; plan.weekEvents=[];
     toast('پیش‌نویس جدید ساخته شد؛ داده‌های روز قبل را قبل از استفاده نوسازی کن.');
   }
   selectedSymbol=plan.instruments.some(item=>item.symbol===selectedSymbol)?selectedSymbol:(plan.instruments.some(item=>item.symbol==='XAUUSD')?'XAUUSD':plan.instruments[0].symbol);
@@ -405,10 +406,10 @@ function isValidPlan(candidate) {
     if(!Array.isArray(candidate.scenarioWeights)||!candidate.scenarioWeights.every(item=>plainObject(item)&&text(item.label)&&typeof item.weight==='number'&&Number.isFinite(item.weight)&&item.weight>=0&&item.weight<=100&&optionalText(item,'note'))) return false;
   }
   if(candidate.sessionPlan!==undefined){
-    if(!Array.isArray(candidate.sessionPlan)||!candidate.sessionPlan.every(item=>plainObject(item)&&['time','title','detail','decision'].every(key=>text(item[key])))) return false;
+    if(!Array.isArray(candidate.sessionPlan)||!candidate.sessionPlan.every(item=>plainObject(item)&&['time','title','detail','decision'].every(key=>typeof item[key]==='string'))) return false;
   }
   if(candidate.weekEvents!==undefined){
-    if(!Array.isArray(candidate.weekEvents)||!candidate.weekEvents.every(item=>plainObject(item)&&['day','time','event','impact','action'].every(key=>text(item[key])))) return false;
+    if(!Array.isArray(candidate.weekEvents)||!candidate.weekEvents.every(item=>plainObject(item)&&['day','time','event','impact','action'].every(key=>typeof item[key]==='string'))) return false;
   }
   if(!Array.isArray(candidate.instruments)||!candidate.instruments.length) return false;
   if(!plainObject(candidate.riskPolicy)||!Array.isArray(candidate.checklist)||!candidate.checklist.length||!Array.isArray(candidate.sources)||!candidate.sources.length) return false;
